@@ -1,4 +1,3 @@
-# libraries for enabling google calendar
 from __future__ import print_function
 
 import datetime
@@ -10,12 +9,14 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# Permissions for google api: if modifying these scopes, delete the file token.json.
+# If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 
-def gcal():
-    """Shows basic usage of the Google Calendar API. Write one schedule"""
+def main():
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
+    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -32,27 +33,49 @@ def gcal():
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
-    #generate event part
-    service = build('calendar', 'v3', credentials=creds)
+
+    try:
+        service = build('calendar', 'v3', credentials=creds)
+
+        # Call the Calendar API
+        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+        print('Getting the upcoming 10 events')
+        events_result = service.events().list(calendarId='primary', timeMin=now,
+                                              maxResults=10, singleEvents=True,
+                                              orderBy='startTime').execute()
+        events = events_result.get('items', [])
+
+        if not events:
+            print('No upcoming events found.')
+            return
+
+        # Prints the start and name of the next 10 events
+        for event in events:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            print(start, event['summary'])
+
+    except HttpError as error:
+        print('An error occurred: %s' % error)
+
     event = {
-    'summary': 'test',
-    'location': 'online',
+    'summary': 'Google I/O 2015',
+    'location': '800 Howard St., San Francisco, CA 94103',
     'description': 'A chance to hear more about Google\'s developer products.',
     'start': {
-        'dateTime': '2022-12-15T09:00:00-07:00',
+        'dateTime': '2015-05-28T09:00:00-07:00',
         'timeZone': 'America/Los_Angeles',
     },
     'end': {
-        'dateTime': '2022-12-15T17:00:00-07:00',
+        'dateTime': '2015-05-28T17:00:00-07:00',
         'timeZone': 'America/Los_Angeles',
     },
     'recurrence': [
         'RRULE:FREQ=DAILY;COUNT=2'
     ],
-    # 'attendees': [
-    #     {'email': 'lpage@example.com'},
-    #     {'email': 'sbrin@example.com'},
-    # ],
+    'attendees': [
+        {'email': 'lpage@example.com'},
+        {'email': 'sbrin@example.com'},
+    ],
     'reminders': {
         'useDefault': False,
         'overrides': [
@@ -65,28 +88,6 @@ def gcal():
     event = service.events().insert(calendarId='primary', body=event).execute()
     print ('Event created:'+(event.get('htmlLink')))
 
-#STEP 1: recognized image, and extract all strings from it
-from PIL import Image
-from pytesseract import pytesseract
-import os
-from dotenv import load_dotenv
 
-#Access .env file, which contains TESSERACTPATH, IMAGENAME
-load_dotenv()
-
-#Define path to tessaract.exe
-path_to_tesseract = os.getenv('TESSERACTPATH')
-#Define path to image
-path_to_image = os.getenv('IMAGENAME')
-#Point tessaract_cmd to tessaract.exe
-pytesseract.tesseract_cmd = path_to_tesseract
-#Open image with PIL
-img = Image.open(path_to_image)
-#Extract text from image
-text = pytesseract.image_to_string(img)
-print(text)
-
-#STEP 2: Analyze all extracted strings, and make a time list for QUIZ/ASSIGNMENT/...
-
-#STEP 3: make google calendar (ref: https://developers.google.com/calendar/api/guides/create-events#python)
-# gcal()
+if __name__ == '__main__':
+    main()
