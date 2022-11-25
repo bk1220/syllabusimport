@@ -70,6 +70,7 @@ from PIL import Image
 from pytesseract import pytesseract
 import os
 from dotenv import load_dotenv
+import re
 
 #Access .env file, which contains TESSERACTPATH, IMAGENAME
 load_dotenv()
@@ -85,8 +86,12 @@ img = Image.open(path_to_image)
 #Extract text from image
 text = pytesseract.image_to_string(img)
 print(text)
+textlist = text.split('\n')
 
 #STEP 2: Analyze all extracted strings, and make a time list for QUIZ/ASSIGNMENT/...
+for line in textlist:
+    x = re.findall(r"<please insert regex for month day, year>", line)
+    print(x)
 
 #STEP 3: make google calendar (ref: https://developers.google.com/calendar/api/guides/create-events#python)
 # gcal()
