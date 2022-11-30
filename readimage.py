@@ -90,8 +90,8 @@ textlist = text.split('\n')
 
 #STEP 2: Analyze all extracted strings, and make a time list for QUIZ/ASSIGNMENT/...
 for line in textlist:
-    x = re.findall(r"<please insert regex for month day, year>", line)
+    x = re.findall(r"(?:January|Febeburay|March|April|May|Jun|July|August|September|October|November|December)\s\d{1,2},\s\d{4}", line)
     print(x)
 
 #STEP 3: make google calendar (ref: https://developers.google.com/calendar/api/guides/create-events#python)
-# gcal()
+gcal()
