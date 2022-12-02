@@ -89,9 +89,15 @@ print(text)
 textlist = text.split('\n')
 
 #STEP 2: Analyze all extracted strings, and make a time list for QUIZ/ASSIGNMENT/...
+discussion = []
+quiz = []
 for line in textlist:
     x = re.findall(r"(?:January|Febeburay|March|April|May|Jun|July|August|September|October|November|December)\s\d{1,2},\s\d{4}", line)
-    print(x)
+    if len(x) == 3:
+        discussion.append(x[1])
+        quiz.append(x[2])
+print(discussion)
+print(quiz)
 
-#STEP 3: make google calendar (ref: https://developers.google.com/calendar/api/guides/create-events#python)
+#STEP 3: make google calendar - use append (ref: https://developers.google.com/calendar/api/guides/create-events#python)
 gcal()
