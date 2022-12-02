@@ -14,7 +14,7 @@ from googleapiclient.errors import HttpError
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 
-def gcal():
+def gcal(datedict):
     """Shows basic usage of the Google Calendar API. Write one schedule"""
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -34,36 +34,21 @@ def gcal():
             token.write(creds.to_json())
     #generate event part
     service = build('calendar', 'v3', credentials=creds)
-    event = {
-    'summary': 'test',
-    'location': 'online',
-    'description': 'A chance to hear more about Google\'s developer products.',
-    'start': {
-        'dateTime': '2022-12-15T09:00:00-07:00',
-        'timeZone': 'America/Los_Angeles',
-    },
-    'end': {
-        'dateTime': '2022-12-15T17:00:00-07:00',
-        'timeZone': 'America/Los_Angeles',
-    },
-    'recurrence': [
-        'RRULE:FREQ=DAILY;COUNT=2'
-    ],
-    # 'attendees': [
-    #     {'email': 'lpage@example.com'},
-    #     {'email': 'sbrin@example.com'},
-    # ],
-    'reminders': {
-        'useDefault': False,
-        'overrides': [
-        {'method': 'email', 'minutes': 24 * 60},
-        {'method': 'popup', 'minutes': 10},
-        ],
-    },
-    }
-
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    print ('Event created:'+(event.get('htmlLink')))
+    for idx, disd in enumerate(datedict['dis']):
+        event = {
+        'summary': 'discusstion'+str(idx+1),
+            'start': {'dateTime': disd+'T13:00:00','timeZone': 'America/Los_Angeles',},
+            'end': {'dateTime': disd+'T14:00:00','timeZone': 'America/Los_Angeles'},
+        }
+        e = service.events().insert(calendarId='primary', body=event).execute()
+    for idx, quizd in enumerate(datedict['quiz']):
+        event = {
+        'summary': 'quiz'+str(idx+1),
+            'start': {'dateTime': quizd+'T13:00:00','timeZone': 'America/Los_Angeles',},
+            'end': {'dateTime': quizd+'T14:00:00','timeZone': 'America/Los_Angeles'},
+        }
+        e = service.events().insert(calendarId='primary', body=event).execute() 
+    print ('Here is the link:'+(e.get('htmlLink')))               
 
 #STEP 1: recognized image, and extract all strings from it
 from PIL import Image
@@ -91,13 +76,39 @@ textlist = text.split('\n')
 #STEP 2: Analyze all extracted strings, and make a time list for QUIZ/ASSIGNMENT/...
 discussion = []
 quiz = []
+
+monthdict = {
+    'January'   :'01', 
+    'Februay'   :'02', 
+    'March'     :'03', 
+    'April'     :'04', 
+    'May'       :'05',
+    'June'      :'06', 
+    'July'      :'07', 
+    'August'    :'08', 
+    'September' :'09', 
+    'October'   :'10', 
+    'November'  :'11',
+    'December'  :'12'}
+
 for line in textlist:
-    x = re.findall(r"(?:January|Febeburay|March|April|May|Jun|July|August|September|October|November|December)\s\d{1,2},\s\d{4}", line)
+    x = re.findall(r"(?:January|Februay|March|April|May|June|July|August|September|October|November|December)\s\d{1,2},\s\d{4}", line)
     if len(x) == 3:
-        discussion.append(x[1])
-        quiz.append(x[2])
-print(discussion)
-print(quiz)
+        disdatelist = x[1].split()
+        if (len(disdatelist[1].replace(',','')) == 1):
+            dated = '0'+disdatelist[1].replace(',','')
+        else: dated = disdatelist[1].replace(',','')
+        newdisdate = disdatelist[2]+'-'+monthdict[disdatelist[0]]+'-'+dated
+        discussion.append(newdisdate)
+
+        quizdatelist = x[2].split()
+        if (len(quizdatelist[1].replace(',','')) == 1):
+            dated = '0'+quizdatelist[1].replace(',','')
+        else: dated = quizdatelist[1].replace(',','')
+        newquizdate = quizdatelist[2]+'-'+monthdict[quizdatelist[0]]+'-'+dated
+        quiz.append(newquizdate)
+
+dissquizdict = {'dis':discussion, 'quiz':quiz}
 
 #STEP 3: make google calendar - use append (ref: https://developers.google.com/calendar/api/guides/create-events#python)
-gcal()
+gcal(dissquizdict)
